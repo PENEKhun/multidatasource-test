@@ -1,0 +1,21 @@
+CREATE DATABASE IF NOT EXISTS coupon_db;
+USE coupon_db;
+
+CREATE TABLE IF NOT EXISTS coupons (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    coupon_code VARCHAR(50) NOT NULL UNIQUE,
+    name VARCHAR(100) NOT NULL,
+    discount_amount DECIMAL(10,2) NOT NULL,
+    minimum_order_amount DECIMAL(10,2) NOT NULL,
+    valid_from TIMESTAMP NOT NULL,
+    valid_to TIMESTAMP NOT NULL,
+    status VARCHAR(50) NOT NULL DEFAULT 'ACTIVE',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- 샘플 쿠폰 데이터
+INSERT INTO coupons (user_id, coupon_code, name, discount_amount, minimum_order_amount, valid_from, valid_to, status) VALUES 
+(1, 'WELCOME_ABC123', '가입 축하 쿠폰', 5000.00, 10000.00, NOW(), DATE_ADD(NOW(), INTERVAL 3 MONTH), 'ACTIVE'),
+(2, 'WELCOME_DEF456', '가입 축하 쿠폰', 5000.00, 10000.00, NOW(), DATE_ADD(NOW(), INTERVAL 3 MONTH), 'ACTIVE'); 

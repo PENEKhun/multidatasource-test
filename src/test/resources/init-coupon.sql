@@ -14,8 +14,3 @@ CREATE TABLE IF NOT EXISTS coupons (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
-
--- 샘플 쿠폰 데이터
-INSERT INTO coupons (user_id, coupon_code, name, discount_amount, minimum_order_amount, valid_from, valid_to, status) VALUES 
-(1, 'WELCOME_ABC123', '가입 축하 쿠폰', 5000.00, 10000.00, NOW(), DATE_ADD(NOW(), INTERVAL 3 MONTH), 'ACTIVE'),
-(2, 'WELCOME_DEF456', '가입 축하 쿠폰', 5000.00, 10000.00, NOW(), DATE_ADD(NOW(), INTERVAL 3 MONTH), 'ACTIVE'); 

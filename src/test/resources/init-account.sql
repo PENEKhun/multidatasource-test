@@ -9,7 +9,3 @@ CREATE TABLE IF NOT EXISTS users (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
-
-INSERT INTO users (username, email) VALUES 
-('testuser1', 'user1@example.com'),
-('testuser2', 'user2@example.com'); 

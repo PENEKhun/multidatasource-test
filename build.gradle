@@ -25,6 +25,17 @@ repositories {
 }
 
 dependencies {
+	implementation ('com.atomikos:transactions-jta:6.0.0') {
+		artifact {
+			classifier = 'jakarta'
+		}
+	}
+	implementation ('com.atomikos:transactions-jdbc:6.0.0') {
+		artifact {
+			classifier = 'jakarta'
+		}
+	}
+	implementation 'jakarta.transaction:jakarta.transaction-api:2.0.1'
 	implementation 'org.springframework.boot:spring-boot-starter-data-jdbc'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'mysql:mysql-connector-java:8.0.33'

@@ -22,7 +22,7 @@ public class UserRegistrationService {
         this.couponJdbcTemplate = couponJdbcTemplate;
     }
 
-    @Transactional(transactionManager = "accountTransactionManager")
+    @Transactional
     public void registerUserWithWelcomeCoupon(String username, String email) {
         log.info("회원가입 시작: username={}, email={}", username, email);
 

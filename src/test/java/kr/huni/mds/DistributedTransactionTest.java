@@ -12,8 +12,14 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.spy;
 
 @SpringBootTest
 @ActiveProfiles("test")
@@ -59,5 +65,44 @@ class DistributedTransactionTest {
         String couponSql = "SELECT COUNT(*) FROM coupons WHERE user_id = ? AND name = '가입 축하 쿠폰'";
         Integer couponCount = couponJdbcTemplate.queryForObject(couponSql, Integer.class, 1);
         assertEquals(1, couponCount);
+    }
+
+    @Test
+    @DisplayName("쿠폰 발급 실패 시 전체 트랜잭션이 롤백된다.")
+    void testRollbackWhenCouponIssuanceFails() {
+        String username = "rollback-user";
+        String email = "rollback@example.com";
+
+        int initialUserCount = accountJdbcTemplate.queryForObject("SELECT COUNT(*) FROM users", Integer.class);
+        int initialCouponCount = couponJdbcTemplate.queryForObject("SELECT COUNT(*) FROM coupons", Integer.class);
+
+        JdbcTemplate originalCouponTemplate = couponJdbcTemplate;
+        JdbcTemplate spyCouponTemplate = spy(originalCouponTemplate);
+        ReflectionTestUtils.setField(userRegistrationService, "couponJdbcTemplate", spyCouponTemplate);
+
+        RuntimeException simulatedFailure = new RuntimeException("Simulated coupon failure");
+        doThrow(simulatedFailure)
+                .when(spyCouponTemplate)
+                .update(anyString(), any(Object[].class));
+
+        RuntimeException thrown;
+        try {
+            thrown = assertThrows(RuntimeException.class,
+                    () -> userRegistrationService.registerUserWithWelcomeCoupon(username, email));
+        } finally {
+            ReflectionTestUtils.setField(userRegistrationService, "couponJdbcTemplate", originalCouponTemplate);
+        }
+
+        assertEquals(simulatedFailure, thrown.getCause());
+
+        Integer persistedUserCount = accountJdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM users WHERE username = ?", Integer.class, username);
+        assertEquals(0, persistedUserCount);
+
+        int finalUserCount = accountJdbcTemplate.queryForObject("SELECT COUNT(*) FROM users", Integer.class);
+        int finalCouponCount = couponJdbcTemplate.queryForObject("SELECT COUNT(*) FROM coupons", Integer.class);
+
+        assertEquals(initialUserCount, finalUserCount);
+        assertEquals(initialCouponCount, finalCouponCount);
     }
 }

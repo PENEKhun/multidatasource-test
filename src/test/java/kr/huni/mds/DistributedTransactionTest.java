@@ -10,10 +10,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @SpringBootTest
 @ActiveProfiles("test")
@@ -31,25 +31,33 @@ class DistributedTransactionTest {
     @Qualifier("couponMysqlJdbcTemplate")
     private JdbcTemplate couponJdbcTemplate;
 
+    @DynamicPropertySource
+    static void overrideDataSourceProperties(DynamicPropertyRegistry registry) {
+        registry.add("spring.datasource.account.url", () -> TestContainersConfig.accountMysqlContainerRef().getJdbcUrl());
+        registry.add("spring.datasource.account.jdbc-url", () -> TestContainersConfig.accountMysqlContainerRef().getJdbcUrl());
+        registry.add("spring.datasource.account.username", () -> TestContainersConfig.accountMysqlContainerRef().getUsername());
+        registry.add("spring.datasource.account.password", () -> TestContainersConfig.accountMysqlContainerRef().getPassword());
+
+        registry.add("spring.datasource.coupon.url", () -> TestContainersConfig.couponMysqlContainerRef().getJdbcUrl());
+        registry.add("spring.datasource.coupon.jdbc-url", () -> TestContainersConfig.couponMysqlContainerRef().getJdbcUrl());
+        registry.add("spring.datasource.coupon.username", () -> TestContainersConfig.couponMysqlContainerRef().getUsername());
+        registry.add("spring.datasource.coupon.password", () -> TestContainersConfig.couponMysqlContainerRef().getPassword());
+    }
+
     @Test
     @DisplayName("회원가입 성공시 쿠폰까지 잘 생성된다.")
     void testUserRegistrationWithWelcomeCoupon() {
-        // Given
         String username = "testuser1";
         String email = "user3@example.com";
 
-        // When
         userRegistrationService.registerUserWithWelcomeCoupon(username, email);
 
-        // Then
-        // 회원가입 체크~
         String userSql = "SELECT COUNT(*) FROM users WHERE username = ?";
         Integer userCount = accountJdbcTemplate.queryForObject(userSql, Integer.class, username);
         assertEquals(1, userCount);
 
-        // 쿠폰 체크~
         String couponSql = "SELECT COUNT(*) FROM coupons WHERE user_id = ? AND name = '가입 축하 쿠폰'";
         Integer couponCount = couponJdbcTemplate.queryForObject(couponSql, Integer.class, 1);
         assertEquals(1, couponCount);
     }
-} 
+}

@@ -2,8 +2,6 @@ package kr.huni.mds.config;
 
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.utility.DockerImageName;
 
@@ -19,7 +17,7 @@ public class TestContainersConfig {
                 .withUsername("test")
                 .withPassword("test")
                 .withInitScript("init-account.sql");
-        
+
         couponMysqlContainer = new MySQLContainer<>(DockerImageName.parse("mysql:8.0.33"))
                 .withDatabaseName("coupon_db")
                 .withUsername("test")
@@ -28,6 +26,14 @@ public class TestContainersConfig {
 
         accountMysqlContainer.start();
         couponMysqlContainer.start();
+    }
+
+    public static MySQLContainer<?> accountMysqlContainerRef() {
+        return accountMysqlContainer;
+    }
+
+    public static MySQLContainer<?> couponMysqlContainerRef() {
+        return couponMysqlContainer;
     }
 
     @Bean
@@ -39,15 +45,4 @@ public class TestContainersConfig {
     public MySQLContainer<?> couponMysqlContainer() {
         return couponMysqlContainer;
     }
-
-    @DynamicPropertySource
-    static void databaseProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.datasource.account.jdbc-url", accountMysqlContainer::getJdbcUrl);
-        registry.add("spring.datasource.account.username", accountMysqlContainer::getUsername);
-        registry.add("spring.datasource.account.password", accountMysqlContainer::getPassword);
-        
-        registry.add("spring.datasource.coupon.jdbc-url", couponMysqlContainer::getJdbcUrl);
-        registry.add("spring.datasource.coupon.username", couponMysqlContainer::getUsername);
-        registry.add("spring.datasource.coupon.password", couponMysqlContainer::getPassword);
-    }
-} 
+}
